@@ -1,0 +1,47 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: currency-conversion
+  namespace: microservice
+  labels:
+    app: currencyconversion
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 8100
+      protocol: TCP
+      targetPort: 8100
+  selector:
+    app: currencyconversion
+    tier: compute
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: currency-conversion
+  namespace: microservice
+  labels:
+    app: currencyconversion
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: currencyconversion
+  template:
+    metadata:
+      labels:
+        app: currencyconversion
+        tier: compute
+    spec:
+      containers:
+        - image: deepak16j/currency-conversion:latest
+          imagePullPolicy: Always
+          name: currency-conversion
+          env:
+            - name: CURRENCY_URL
+              value: currency-exchange.microservice:8001/
+              # export CURRENCY_URL=http://localhost:8001/
+          ports:
+            - containerPort: 8100
